@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title>是男人就坚持五秒</title>
+		<style>
+			a {
+				text-decoration: none;
+			}
+			
+			body {
+				margin: 0;
+				overflow: hidden;
+			}
+			
+			#box {
+				width: 500px;
+				height: 500px;
+				border: 5px solid black;
+				background: palegreen;
+				margin: 8px auto 0;
+				position: relative;
+				overflow: hidden;
+			}
+			
+			#time {
+				width: 300px;
+				font: 20px/20px "微软雅黑";
+				color: #000;
+				margin: 70px auto 0;
+			}
+			
+			#start {
+				width: 80px;
+				height: 40px;
+				background: red;
+				font: 16px/40px "微软雅黑";
+				text-align: center;
+				position: absolute;
+				left: 50%;
+				top: 50%;
+				margin-left: -40px;
+				margin-top: -20px;
+			}
+			
+			#man {
+				width: 30px;
+				height: 30px;
+				background: url(huaji.png) no-repeat;
+				position: absolute;
+				left: 0;
+				top: 0;
+				z-index: 2;
+				display: none;
+			}
+			
+			.dian {
+				width: 10px;
+				height: 10px;
+				background: blue;
+				position: absolute;
+				left: 0;
+				top: 0;
+				z-index: 1;
+				border-radius: 50%;
+			}
+			
+			#gameOver {
+				width: 300px;
+				height: 190px;
+				background: palegoldenrod;
+				border: 2px solid red;
+				position: absolute;
+				left: 50%;
+				top: 50%;
+				margin-left: -150px;
+				margin-top: -95px;
+				display: none;
+				z-index: 3;
+			}
+			
+			#gameOver p {
+				font: 30px/30px arial;
+				font-weight: bold;
+				color: red;
+				text-align: center;
+				margin-bottom: 20px;
+			}
+			
+			#gameOver span {
+				display: block;
+				font: 28px/28px "微软雅黑";
+				font-weight: bold;
+				color: red;
+				text-align: center;
+				margin-bottom: 30px;
+			}
+			
+			#gameOver a {
+				font: 30px/30px "微软雅黑";
+				color: black;
+				text-align: center;
+				margin-left: 82px;
+				background: paleturquoise;
+				border: 2px solid red;
+				padding: 5px 10px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="time">你坚持了：0秒</div>
+		<div id="box">
+			<a id="start" href="javascript:;">
+				开始游戏
+			</a>
+			<div id="man"></div>
+			<div id="gameOver">
+				<p>Game Over</p>
+				<span></span>
+				<a id="restart" href="">重新开始</a>
+			</div>
+		</div>
+		<script>
+			var over = document.getElementById("gameOver");
+			var achievementSpan = over.getElementsByTagName("span")[0];
+			var oTime = document.getElementById("time");
+
+			var generate = 60; //多长时间生成一个小点
+
+			var timer1 = null; //生成新的点
+			var timer2 = null; //检测碰撞
+			var timer3 = null; //计算成绩
+			var achievement = 0; //成绩
+			var isOver = false;
+
+			box.addEventListener("mousemove", function(ev) {
+				if(isOver) {
+					return;
+				}
+				var leftMax = box.offsetWidth - man.offsetWidth - 10; //最右侧的距离
+				var topMax = box.offsetHeight - man.offsetHeight - 10; //最下方的距离
+
+				var x = ev.clientX - box.offsetLeft - (man.offsetWidth / 2); //最终的位置
+				var y = ev.clientY - box.offsetTop - (man.offsetHeight / 2); //最终的位置
+
+				if(x < 0) {
+					x = 0;
+				}
+				if(x > leftMax) {
+					x = leftMax;
+				}
+				if(y < 0) {
+					y = 0;
+				}
+				if(y > topMax) {
+					y = topMax;
+				}
+				man.style.left = x + "px";
+				man.style.top = y + "px";
+			});
+
+			start.onclick = function(ev) {
+				box.style.cursor = "none";
+				this.style.display = "none";
+				man.style.display = "block";
+
+				man.style.left = ev.clientX - box.offsetLeft - (man.offsetWidth / 2) + "px"; //兼容ie和火狐
+				man.style.top = ev.clientY - box.offsetTop - (man.offsetHeight / 2) + "px"; //兼容ie和火狐
+
+				
+				timer1 = setInterval(function() {
+					var speedX = createSpeed(); //小点的X轴移动速度(1-5)
+					var speedY = createSpeed(); //小点的Y轴移动速度(1-5)
+					if(Math.min(speedX, speedY) === 1) {
+						var removeTime = 15000;
+					} else if(Math.min(speedX, speedY) === 2) {
+						var removeTime = 9000;
+					} else if(Math.min(speedX, speedY) === 3) {
+						var removeTime = 5000;
+					} else if(Math.min(speedX, speedY) === 4) {
+						var removeTime = 4000;
+					} else if(Math.min(speedX, speedY) === 5) {
+						var removeTime = 3000;
+					}
+					if(issurprised() === 1) { //左上角
+						createDian({
+							direction: 1, //代表方向
+							isX: -100, //小点的初始X值
+							isY: Math.floor((Math.random() - 0.5) * 800), //小点的初始Y值
+							isSpeedX: speedX, //X轴移动速度
+							isSpeedY: speedY, //Y轴移动速度
+							isremoveTime: removeTime //多长时间后删除
+						})
+					} else if(issurprised() === 2) { //右上角
+						createDian({
+							direction: 2,
+							isX: 610,
+							isY: Math.floor((Math.random() - 0.5) * 800),
+							isSpeedX: speedX, //X轴移动速度
+							isSpeedY: speedY, //Y轴移动速度
+							isremoveTime: removeTime
+						})
+					} else if(issurprised() === 3) { //右下角
+						createDian({
+							direction: 3,
+							isX: 610,
+							isY: Math.floor(Math.random() * (800 - 250) + 250),
+							isSpeedX: speedX, //X轴移动速度
+							isSpeedY: speedY, //Y轴移动速度
+							isremoveTime: removeTime
+						})
+					} else if(issurprised() === 4) { //左下角
+						createDian({
+							direction: 4,
+							isX: -100,
+							isY: Math.floor(Math.random() * (800 - 250) + 250),
+							isSpeedX: speedX, //X轴移动速度
+							isSpeedY: speedY, //Y轴移动速度
+							isremoveTime: removeTime
+						})
+					}
+				}, generate); //每隔多长时间产生一个小点
+				timer3 = setInterval(function(){
+					achievement++;
+					oTime.innerHTML = "你坚持了：" + achievement + "秒";
+				}, 1000)
+			}
+
+			function issurprised() { //生成1-4的随机数(主要用来生成方向)
+				return Math.ceil(Math.random() * 4);
+			}
+
+			function createSpeed() { //生成1-5的随机数(主要用来生成速度)
+				return Math.ceil(Math.random() * 5);
+			}
+
+			function createDian(options) { //生成小点
+				if(isOver){
+					return;
+				}
+				var isX = options.isX; //小点的初始X位置
+				var isY = options.isY; //小点的初始Y位置
+
+				var dian = document.createElement("div");
+				dian.className = "dian";
+				dian.style.left = isX + "px";
+				dian.style.top = isY + "px";
+				box.appendChild(dian);
+
+				var timer4 = setInterval(function() {
+					if(isOver) {
+						clearInterval(timer4);
+					}
+
+					if(options.direction === 1) { //左上角
+						isX += options.isSpeedX;
+						isY += options.isSpeedY;
+					}else if(options.direction === 2) { //右上角
+						isX -= options.isSpeedX;
+						isY += options.isSpeedY;
+					}else if(options.direction === 3) { //右下角
+						isX -= options.isSpeedX;
+						isY -= options.isSpeedY;
+					}else if(options.direction === 4) { //左下角
+						isX += options.isSpeedX;
+						isY -= options.isSpeedY;
+					}
+					dian.style.left = isX + "px";
+					dian.style.top = isY + "px";
+				}, 16)
+
+				var timer5 = setTimeout(function() {
+					clearInterval(timer4);
+					if(!isOver) {
+						box.removeChild(dian);
+					}
+				}, options.isremoveTime)
+
+			}
+
+			function peng(obj1, obj2) { //返回结果如果为true，说明碰到
+				var pos1 = obj1.getBoundingClientRect();
+				var pos2 = obj2.getBoundingClientRect();
+
+				return pos1.right > pos2.left && pos1.left < pos2.right && pos1.bottom > pos2.top && pos1.top < pos2.bottom;
+			}
+
+			var timer2 = setInterval(function() {
+				var dian = document.getElementsByClassName("dian");
+				for(var i = 0; i < dian.length; i++) { //让div和每一个li进行碰撞检测
+					if(peng(man, dian[i])) { //碰到
+						isOver = true;
+						box.style.cursor = "default";
+						clearInterval(timer2); //不再检测碰撞
+						clearInterval(timer3); //不再计算成绩
+						man.style.background = "url(ku.png) no-repeat";
+						over.style.display = "block";
+						achievementSpan.innerHTML = "你坚持了：" + achievement + "秒";
+					}
+				}
+			}, 16)
+			restart.onclick = function() {
+				location.reload();
+			}
+		</script>
+	</body>
+
+</html>
